@@ -13,6 +13,7 @@
 #define RANDOM_ADD 12345
 #define RANDOM_DIVIDE 65536
 
+
 //rand() implementation
 static unsigned long int next = 1;
 

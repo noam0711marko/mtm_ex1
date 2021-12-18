@@ -1,6 +1,5 @@
 #include "amount_set_str_node.h"
 
-
 struct node_t {
     char *name;
     double quantity;
@@ -28,8 +27,7 @@ Node createNode(const char *new_name) {
     return new_node;
 }
 
-void destroyNode(Node to_destroy)
-{
+void destroyNode(Node to_destroy){
     if(to_destroy==NULL) {
         return;
     }
@@ -37,8 +35,7 @@ void destroyNode(Node to_destroy)
     free(to_destroy);
 }
 
-Node copyNode(Node old_node)
-{
+Node copyNode(Node old_node){
     if(old_node==NULL){
         return NULL;
     }
@@ -51,8 +48,7 @@ Node copyNode(Node old_node)
     return copy_of_node;
 }
 
-void updateNextNode(Node node_to_update,Node next)
-{
+void updateNextNode(Node node_to_update,Node next){
     assert(node_to_update!=NULL);
     node_to_update->next=next;
 }

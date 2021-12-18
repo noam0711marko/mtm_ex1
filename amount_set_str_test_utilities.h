@@ -1,5 +1,5 @@
-#ifndef TEST_UTILITIES_H_
-#define TEST_UTILITIES_H_
+#ifndef AMOUNT_SET_STR_TEST_UTILITIES_H_
+#define AMOUNT_SET_STR_TEST_UTILITIES_H_
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -49,20 +49,23 @@
 /**
  * Macro used for running a test from the main function
  */
-#define RUN_TEST(test) \
+
+#define RUN_COLORFULL_TEST(test, name, id)    \
 \
-    do {                     \
-    printf("\033[0m");\
-      printf("Running "#test" ... ");   \
+    do {                                 \
+        blue();      printf("Running test #%ld %s ... ", id + 1, name);  reset(); \
+        fflush(stdout); \
         if (test()) {                    \
-            printf("\033[1m\033[32m");\
+            green();\
             printf("[OK]\n");            \
-            printf("\033[1m\033[32m");           \
-        } else {                         \
-            printf("\033[1m\033[31m");\
-            printf("[Failed]\n");             \
-            printf("\033[1m\033[31m");   \
+            reset();\
+            ++NumTestsPassed;   \
+        }                                     \
+        else {    \
+            red();\
+            printf("[Failed]\n");        \
+            reset();\
         }                                \
     } while (0)
 
-#endif /* TEST_UTILITIES_H_ */
+#endif /* AMOUNT_SET_STR_TEST_UTILITIES_H_ */
