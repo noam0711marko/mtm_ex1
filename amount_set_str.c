@@ -1,11 +1,7 @@
 #include "amount_set_str.h"
 #include "amount_set_str_node.h"
 
-#include <stdio.h>
 #include <stdbool.h>
-#include <string.h>
-#include <assert.h>
-#include <stdlib.h>
 
 struct AmountSet_t {
     Node first;
@@ -14,97 +10,58 @@ struct AmountSet_t {
     int size;
 };
 
-AmountSet asCreate() {
-    AmountSet new_as = (AmountSet) malloc(sizeof(struct AmountSet_t));
-    if (new_as == NULL) {
-        return NULL;
-    }
-    new_as->first = NULL;
-    new_as->iterator = NULL;
-    new_as->last = NULL;
-    new_as->size = 0;
-    return new_as;
+///////////////////////////////////////////////// static help function /////////////////////////////////////////////////
+///// declarations and documentation////////////////////////////////////////////////////////////////////////////////////
+
+//sets new amount_set_str's fields to their initial values
+static void asInit(AmountSet as);
+
+//sets amount set's iterator to tmp_iterator. for set to NULL, send NULL as tmp_iterator.
+static void resetIterator(AmountSet set, Node tmp_iterator);
+
+//creates new item for the amount set
+static Node createNewItem (const char* element, AmountSetResult *res);
+
+//insertion function in case the new item should be inserted to an empty amount set
+static void insertToEmptySet(AmountSet set, const char* element, AmountSetResult *res);
+
+//insertion function in case the new item should be inserted first to the (non-empty) amount set
+static void insertAsFirstToSet(AmountSet set, const char* element, AmountSetResult *res);
+
+//insertion function in case the new item should be inserted last to the (non-empty) amount set
+static void insertAsLastToSet(AmountSet set, const char* element,Node previous, AmountSetResult *res);
+
+//insertion function in case the new item should be inserted to the (non-empty) amount set,
+//but neither as first nor last.
+static void insertInMiddleOfSet(AmountSet set, const char* element,Node previous, AmountSetResult *res);
+
+//copies all original amount set's contents into a new amount set. if the copy fails, deallocates new amount set and
+//returns NULL, otherwise returns the new amount set
+static AmountSet copySetContents(AmountSet original, AmountSet copy);
+
+//deletes the first item of the amount set, and takes care of the byproducts of this.
+static void deleteFirst(AmountSet set);
+
+//deletes an item (not the first) of the amount set, and takes care of the byproducts of this (including the case
+//in which the item is the last of the amount set)
+static void deleteNotFirst(AmountSet set, const char* current, const char* element);
+
+//deallocates all amount set's contents
+static void clearSetContents(AmountSet set);
+
+
+///// implementations //////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void asInit(AmountSet as){
+    as->first = NULL;
+    resetIterator(as, NULL);
+    as->last = NULL;
+    as->size = 0;
 }
 
 static void resetIterator(AmountSet set, Node tmp_iterator) {
     assert(set!=NULL);
     set->iterator = tmp_iterator;
-}
-
-void asDestroy(AmountSet set) {
-    asClear(set);
-    free(set);
-}
-
-AmountSet asCopy(AmountSet set) {
-    AmountSet copy_of_set = asCreate();
-    if (copy_of_set == NULL) {
-        return NULL;
-    }
-    char* iterator = asGetFirst(set);
-    copy_of_set->first = copyNode(set->iterator);
-    iterator = asGetNext(set);
-    asGetFirst(copy_of_set);
-    while (iterator != NULL) {
-        Node new_node = copyNode(set->iterator);
-        if (new_node == NULL) {
-            asDestroy(copy_of_set);
-            return NULL;
-        }
-        updateNextNode(copy_of_set->iterator, new_node);
-        asGetNext(copy_of_set);
-        iterator = asGetNext(set);
-    }
-    copy_of_set->last = copy_of_set->iterator;
-    copy_of_set->size = set->size;
-    return copy_of_set;
-}
-
-int asGetSize(AmountSet set) {
-    if(set==NULL) {
-        return -1;
-    }
-    return set->size;
-}
-
-bool asContains(AmountSet set, const char* element) {
-    if (set == NULL || element == NULL) {
-        return false;
-    }
-    Node tmp_iterator = set->iterator;
-    char* current=asGetFirst(set);
-    while (current != NULL) {
-        int compare_string_result = strcmp(element, current);
-        if (compare_string_result == 0) {
-            return true;
-        }
-        current = asGetNext(set);
-    }
-    resetIterator(set, tmp_iterator);
-    return false;
-}
-
-AmountSetResult asGetAmount(AmountSet set, const char* element, double* outAmount) {
-    if (set==NULL || element == NULL || outAmount == NULL) {
-        return AS_NULL_ARGUMENT;
-    }
-    if(asContains(set,element)==false) {
-        return AS_ITEM_DOES_NOT_EXIST;
-    }
-    else {
-        Node tmp_iterator = set->iterator;
-        char* current=asGetFirst(set);
-        while (current != NULL) {
-            int compare_string_result = strcmp(element, current);
-            if (compare_string_result == 0) {
-                *outAmount = getQuantityNode(set->iterator);
-                break;
-            }
-            current=asGetNext(set);
-        }
-        resetIterator(set,tmp_iterator);
-    }
-    return AS_SUCCESS;
 }
 
 static Node createNewItem (const char* element, AmountSetResult *res){
@@ -168,6 +125,130 @@ static void insertInMiddleOfSet(AmountSet set, const char* element,Node previous
     *res=AS_SUCCESS;
 }
 
+static AmountSet copySetContents(AmountSet original, AmountSet copy){
+    char* iterator = asGetFirst(original);
+    copy->first = copyNode(original->iterator);
+    iterator = asGetNext(original);
+    asGetFirst(copy);
+    while (iterator != NULL) {
+        Node new_node = copyNode(original->iterator);
+        if (new_node == NULL) {
+            asDestroy(copy);
+            return NULL;
+        }
+        updateNextNode(copy->iterator, new_node);
+        asGetNext(copy);
+        iterator = asGetNext(original);
+    }
+    copy->last = copy->iterator;
+    copy->size = original->size;
+
+    return copy;
+}
+
+static void deleteFirst(AmountSet set){
+    set->first = getNextNode(set->first);
+    destroyNode(set->iterator);
+    set->size--;
+    resetIterator(set,NULL);
+}
+
+static void deleteNotFirst(AmountSet set, const char* current, const char* element){
+    Node previous = set->first;
+    current = asGetNext(set);
+    while (strcmp(element, current) != 0) {
+        previous = set->iterator;
+        current = asGetNext(set);
+    }
+    updateNextNode(previous, getNextNode(set->iterator));
+    destroyNode(set->iterator);
+    resetIterator(set, NULL);
+    if (getNextNode(previous) == NULL) {
+        set->last = previous;
+    }
+}
+
+static void clearSetContents(AmountSet set){
+    asGetFirst(set);
+    Node Next=getNextNode(set->iterator);
+    while(Next!=NULL){
+        destroyNode(set->iterator);
+        resetIterator(set, Next);
+        Next=getNextNode(set->iterator);
+    }
+    destroyNode(set->iterator);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+AmountSet asCreate() {
+    AmountSet new_as = (AmountSet) malloc(sizeof(struct AmountSet_t));
+    if (new_as == NULL) {
+        return NULL;
+    }
+    asInit(new_as);
+    return new_as;
+}
+
+void asDestroy(AmountSet set) {
+    asClear(set);
+    free(set);
+}
+
+AmountSet asCopy(AmountSet set) {
+    AmountSet copy_of_set = asCreate();
+    if (copy_of_set == NULL) {
+        return NULL;
+    }
+    return copySetContents(set, copy_of_set);
+}
+
+int asGetSize(AmountSet set) {
+    if(set==NULL) {
+        return -1;
+    }
+    return set->size;
+}
+
+bool asContains(AmountSet set, const char* element) {
+    if (set == NULL || element == NULL) {
+        return false;
+    }
+    Node tmp_iterator = set->iterator;
+    char* current=asGetFirst(set);
+    while (current != NULL) {
+        int compare_string_result = strcmp(element, current);
+        if (compare_string_result == 0) {
+            return true;
+        }
+        current = asGetNext(set);
+    }
+    resetIterator(set, tmp_iterator);
+    return false;
+}
+
+AmountSetResult asGetAmount(AmountSet set, const char* element, double* outAmount) {
+    if (set==NULL || element == NULL || outAmount == NULL) {
+        return AS_NULL_ARGUMENT;
+    }
+    if(asContains(set,element)==false) {
+        return AS_ITEM_DOES_NOT_EXIST;
+    }
+    else {
+        Node tmp_iterator = set->iterator;
+        char* current=asGetFirst(set);
+        while (current != NULL) {
+            int compare_string_result = strcmp(element, current);
+            if (compare_string_result == 0) {
+                *outAmount = getQuantityNode(set->iterator);
+                break;
+            }
+            current=asGetNext(set);
+        }
+        resetIterator(set,tmp_iterator);
+    }
+    return AS_SUCCESS;
+}
+
 AmountSetResult asRegister(AmountSet set, const char* element) {
     AmountSetResult insertion_result=AS_SUCCESS;
     if (set==NULL || element == NULL) {
@@ -180,7 +261,7 @@ AmountSetResult asRegister(AmountSet set, const char* element) {
     if (asContains(set, element)) {
             insertion_result = AS_ITEM_ALREADY_EXISTS;
             return insertion_result;
-        }
+    }
     char* current = asGetFirst(set);
     if (strcmp(element,current)<0){
         insertAsFirstToSet(set,element,&insertion_result);
@@ -191,7 +272,7 @@ AmountSetResult asRegister(AmountSet set, const char* element) {
         insertAsLastToSet(set,element,set->first,&insertion_result);
         resetIterator(set,NULL);
         return insertion_result;
-        }
+    }
     else {
         Node previous=set->iterator;
         current= asGetNext(set);
@@ -205,7 +286,6 @@ AmountSetResult asRegister(AmountSet set, const char* element) {
             current= asGetNext(set);
         }
     }
-
     insertAsLastToSet(set,element,set->last,&insertion_result);
     resetIterator(set,NULL);
     return insertion_result;
@@ -219,15 +299,13 @@ AmountSetResult asChangeAmount(AmountSet set, const char* element, double amount
     else {
         Node tmp_iterator = set->iterator;
         if (asContains(set, element) == false) {
-            function_result = AS_ITEM_DOES_NOT_EXIST;
+            function_result=AS_ITEM_DOES_NOT_EXIST;
         }
         else {
             char *current = asGetFirst(set);
             while (current != NULL) {
-                int compare_string_result = strcmp(element, current);
-                if (compare_string_result == 0) {
-                    NodeResult change_amount_result = updateQuantityNode(set->iterator, amount);
-                    if (change_amount_result == NODE_INSUFFICIENT_AMOUNT) {
+                if (strcmp(element, current) == 0) {
+                    if (updateQuantityNode(set->iterator, amount) == NODE_INSUFFICIENT_AMOUNT){
                         function_result = AS_INSUFFICIENT_AMOUNT;
                         break;
                     }
@@ -250,24 +328,10 @@ AmountSetResult asDelete(AmountSet set, const char *element) {
     }
     const char *current = asGetFirst(set);
     if (strcmp(element, current) == 0) {
-        set->first = getNextNode(set->first);
-        destroyNode(set->iterator);
-        set->iterator = NULL;
-        set->size--;
+        deleteFirst(set);
         return AS_SUCCESS;
     }
-    Node previous = set->first;
-    current = asGetNext(set);
-    while (strcmp(element, current) != 0) {
-        previous = set->iterator;
-        current = asGetNext(set);
-    }
-    updateNextNode(previous, getNextNode(set->iterator));
-    destroyNode(set->iterator);
-    set->iterator = NULL;
-    if (getNextNode(previous) == NULL) {
-        set->last = previous;
-    }
+    deleteNotFirst(set, current, element);
     set->size--;
     return AS_SUCCESS;
 }
@@ -276,18 +340,8 @@ AmountSetResult asClear(AmountSet set){
     if(set==NULL){
         return AS_NULL_ARGUMENT;
     }
-    asGetFirst(set);
-    Node Next=getNextNode(set->iterator);
-    while(Next!=NULL){
-        destroyNode(set->iterator);
-        set->iterator=Next;
-        Next=getNextNode(set->iterator);
-    }
-    destroyNode(set->iterator);
-    set->iterator=NULL;
-    set->last=NULL;
-    set->first=NULL;
-    set->size=0;
+    clearSetContents(set);
+    asInit(set);
     return AS_SUCCESS;
 }
 
