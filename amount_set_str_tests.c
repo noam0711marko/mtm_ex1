@@ -13,8 +13,10 @@
 #define RANDOM_ADD 12345
 #define RANDOM_DIVIDE 65536
 
-static int random(){
-    unsigned long int next=1;
+//rand() implementation
+static unsigned long int next = 1;
+
+static int random(void){
     next = next * RANDOM_MULTIPLY + RANDOM_ADD;
     return (unsigned int)(next/RANDOM_DIVIDE) % RAND_MAX;
 }
