@@ -32,7 +32,9 @@ bool checkIfAmountLegal(double amount, MatamikyaAmountType type) {
         return false;
     }
     if (type == MATAMIKYA_HALF_INTEGER_AMOUNT) {
-        if ((dif>=-MERGE_OF_ERROR&&dif<=MERGE_OF_ERROR)||(dif>=HALF-MERGE_OF_ERROR&&dif<HALF+MERGE_OF_ERROR)||(dif>=1-MERGE_OF_ERROR&&dif<=+1+MERGE_OF_ERROR))
+        if ((dif>=-MERGE_OF_ERROR&&dif<=MERGE_OF_ERROR)||
+                (dif>=HALF-MERGE_OF_ERROR&&dif<HALF+MERGE_OF_ERROR)||
+                    (dif>=1-MERGE_OF_ERROR&&dif<=+1+MERGE_OF_ERROR))
         {
             return true;
         }
