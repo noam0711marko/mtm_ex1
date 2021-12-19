@@ -1,19 +1,18 @@
 #include "amount_set_str_tests.h"
 
-/*If you would like to run an OUT_OF_MEMORY check, uncomment the #define
- * warning! the OUT_OF_MEMORY check contains an (almost) infinite loop.
- * therefore, the test might take long time to run.
- */
+/////////////////////////////////////////////////////// defines ////////////////////////////////////////////////////////
 
-//#define WITH_NO_MEMORY_CHECK
-
+/* can be any number you would like, as long as it's negative and bigger than -2,147,483,648 */
 #define VERY_BIG_NEGATIVE -13232321
+
+/* defines for the random generator function. please don't change! */
 #define RAND_MAX 32767
 #define RANDOM_MULTIPLY 1103515245
 #define RANDOM_ADD 12345
 #define RANDOM_DIVIDE 65536
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////// random string generator/////////////////////////////////////////////////////////////
 //rand() implementation
 static unsigned long int next = 1;
 
@@ -35,8 +34,10 @@ static void rand_str(char *dest, size_t length) {
     *dest = '\0';
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////// tests /////////////////////////////////////////////////////////
 
-
+//test #1 - FULL
 bool testAsCreateDestroy() {
     AmountSet set = asCreate();
     ASSERT_TEST(set != NULL);
@@ -47,13 +48,14 @@ bool testAsCreateDestroy() {
     return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//test #2 - FULL
 bool testAsAddAndContainsAndSize() {
     AmountSet rand_set = asCreate();
     for (int key = 1 ; key < 1000 ; ++key) {
         char str[] = { [41] = '\1' };
         rand_str(str, sizeof str - 1);
-
-
         ASSERT_TEST(asRegister(rand_set, str) == AS_SUCCESS);
         ASSERT_TEST(asGetSize(rand_set) == key);
     }
@@ -94,13 +96,21 @@ bool testAsAddAndContainsAndSize() {
     return true;
 }
 
-bool testChangeAndGetAmount() {
-    AmountSet set = asCreate();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//test #3 - initial settings
+static void test3init(AmountSet set,char* desk){
     asRegister(set, "chair");
     asRegister(set, "closet");
-    char *desk = "desk";
     asRegister(set, desk);
     asRegister(set, "toilet seat #4328");
+}
+
+//test #3 - FULL
+bool testChangeAndGetAmount() {
+    AmountSet set = asCreate();
+    char* desk = "desk";
+    test3init(set,desk);
     double amount = random();
     ASSERT_TEST(asGetAmount(set, "chair", &amount) == AS_SUCCESS);
     ASSERT_TEST(amount == 0);
@@ -109,9 +119,6 @@ bool testChangeAndGetAmount() {
     ASSERT_TEST(amount == 0);
     amount = random();
     ASSERT_TEST(asGetAmount(set, desk, &amount) == AS_SUCCESS);
-    ASSERT_TEST(amount == 0);
-    amount = random();
-    ASSERT_TEST(asGetAmount(set, "toilet seat #4328", &amount) == AS_SUCCESS);
     ASSERT_TEST(amount == 0);
     amount = random();
     ASSERT_TEST(asGetAmount(NULL, "toilet seat #4328", &amount) == AS_NULL_ARGUMENT);
@@ -152,6 +159,9 @@ bool testChangeAndGetAmount() {
     return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//test #4 - FULL
 bool testAsDeleteAndClear() {
     AmountSet office = asCreate();
     AmountSet bedroom = asCreate();
@@ -201,9 +211,10 @@ bool testAsDeleteAndClear() {
     return true;
 }
 
-bool allAroundTest() {
-    AmountSet badroom = asCreate();
-    AmountSet office = asCreate();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//test #5 - badroom set initial insertions
+static void insertToBadroom(AmountSet badroom){
     asRegister(badroom, "king-size bed");
     asRegister(badroom, "queen-size bed");
     asRegister(badroom, "double bed");
@@ -219,6 +230,10 @@ bool allAroundTest() {
     asRegister(badroom, "mattress 220X160");
     asRegister(badroom, "mattress 220X180");
     asRegister(badroom, "mattress 180X140");
+}
+
+//test #5 - badroom set sort checking
+static bool checkBadroomSort(AmountSet badroom){
     ASSERT_TEST(strcmp("bunk beds", asGetFirst(badroom))==0);
     ASSERT_TEST(strcmp("double bed", asGetNext(badroom))==0);
     ASSERT_TEST(strcmp("gallery bed", asGetNext(badroom))==0);
@@ -234,6 +249,11 @@ bool allAroundTest() {
     ASSERT_TEST(strcmp("pillow #906", asGetNext(badroom))==0);
     ASSERT_TEST(strcmp("queen-size bed", asGetNext(badroom))==0);
     ASSERT_TEST(strcmp("single bed", asGetNext(badroom))==0);
+    return true;
+}
+
+//test #5 - badroom set error returns checking
+static bool badroomErrorReturningCheck(AmountSet badroom){
     ASSERT_TEST(asRegister(badroom, "pillow #142")==AS_ITEM_ALREADY_EXISTS);
     ASSERT_TEST(asRegister(badroom, "king-size bed")==AS_ITEM_ALREADY_EXISTS);
     ASSERT_TEST(asRegister(badroom, NULL)==AS_NULL_ARGUMENT);
@@ -245,16 +265,18 @@ bool allAroundTest() {
     ASSERT_TEST(asClear(null_set)==AS_NULL_ARGUMENT);
     ASSERT_TEST(asGetFirst(null_set)==NULL);
 
-    double current_amount=random();
-    char* current=asGetFirst(badroom);
-    while (current != NULL) {
-        asGetAmount(badroom, current, &current_amount);
+    return true;
+}
+
+//test #5 - badroom set initial amounts and change amounts checking
+static bool badroomAmountCheck(AmountSet badroom, double current_amount, char* current_item, double add_amount){
+    while (current_item != NULL) {
+        asGetAmount(badroom, current_item, &current_amount);
         ASSERT_TEST(current_amount==0);
         current_amount=random();
-        current = asGetNext(badroom);
+        current_item = asGetNext(badroom);
     }
-    double add_amount=(double)random();
-    char* current_item=asGetFirst(badroom);
+    current_item=asGetFirst(badroom);
     asChangeAmount(badroom, current_item, add_amount);
     asGetAmount(badroom, current_item, &current_amount);
     ASSERT_TEST(current_amount==add_amount);
@@ -265,28 +287,32 @@ bool allAroundTest() {
         asGetAmount(badroom, current_item, &current_amount);
         ASSERT_TEST(current_amount==add_amount);
     }
-    AmountSet bedroom= asCopy(badroom);
+    return true;
+}
+
+//test #5 - copy badroom set into a new set with correct name checking
+static bool copyBadroomToBedroomCheck(AmountSet badroom, AmountSet bedroom){
     ASSERT_TEST(asRegister(bedroom, "pillow #142")==AS_ITEM_ALREADY_EXISTS);
     ASSERT_TEST(asRegister(bedroom, "king-size bed")==AS_ITEM_ALREADY_EXISTS);
-    ASSERT_TEST(strcmp("bunk beds", asGetFirst(badroom))==0);
-    ASSERT_TEST(strcmp("double bed", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("gallery bed", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("king-size bed", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("mattress 180X140", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("mattress 220X140", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("mattress 220X160", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("mattress 220X180", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("orthopedic pillow #086", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("orthopedic pillow #094", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("pillow #142", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("pillow #328", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("pillow #906", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("queen-size bed", asGetNext(badroom))==0);
-    ASSERT_TEST(strcmp("single bed", asGetNext(badroom))==0);
+    ASSERT_TEST(strcmp("bunk beds", asGetFirst(bedroom))==0);
+    ASSERT_TEST(strcmp("double bed", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("gallery bed", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("king-size bed", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("mattress 180X140", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("mattress 220X140", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("mattress 220X160", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("mattress 220X180", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("orthopedic pillow #086", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("orthopedic pillow #094", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("pillow #142", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("pillow #328", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("pillow #906", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("queen-size bed", asGetNext(bedroom))==0);
+    ASSERT_TEST(strcmp("single bed", asGetNext(bedroom))==0);
     double badroom_curr_amount;
     double bedroom_curr_amount;
     char* badroom_current=asGetFirst(badroom);
-    char* bedroom_current=asGetFirst(badroom);
+    char* bedroom_current=asGetFirst(bedroom);
     while (badroom_current != NULL && bedroom_current != NULL ) {
         asGetAmount(badroom, badroom_current, &badroom_curr_amount);
         asGetAmount(bedroom, bedroom_current, &bedroom_curr_amount);
@@ -296,6 +322,12 @@ bool allAroundTest() {
     }
     asDelete(badroom, "king-size bed");
     ASSERT_TEST(asGetSize(badroom)== asGetSize(bedroom)-1);
+
+    return true;
+}
+
+//test #5 - clear badroom set from it's contents checking, and than destroy it.
+static bool clearAndDestroyBadroomCheck(AmountSet badroom){
     asClear(badroom);
     ASSERT_TEST(asGetSize(badroom)==0);
     ASSERT_TEST(asGetFirst(badroom)==NULL);
@@ -303,6 +335,12 @@ bool allAroundTest() {
     ASSERT_TEST(asChangeAmount(badroom, "queen-size bed", (double)VERY_BIG_NEGATIVE) == AS_ITEM_DOES_NOT_EXIST);
     ASSERT_TEST(asChangeAmount(badroom, asGetNext(badroom), (double)VERY_BIG_NEGATIVE) == AS_NULL_ARGUMENT);
     asDestroy(badroom);
+
+    return true;
+}
+
+//test #5 - office set initial insertions
+static void insertToOffice(AmountSet office){
     asRegister(office, "WOODEN desk");
     asRegister(office, "PLASTIC desk");
     asRegister(office, "ALUMINUM desk");
@@ -315,6 +353,13 @@ bool allAroundTest() {
     asRegister(office, "Gaming chair - expert pro super duper max with an espresso machine in right handle");
     asRegister(office, "laptop holder #3986542");
     asRegister(office, "debugging duck");
+}
+
+//test #5 - office set amount change check
+// in first loop - for odd should be always 0 (reducing same amount as is there),
+// for even should work correctly and double the amount!
+// in second loop - should be 0 for all the items (delete all the amount!)!
+static bool changeAmountInOfficeCheck(AmountSet office,double current_amount, char* current_item, double add_amount){
     add_amount=1;
     current_item=asGetFirst(office);
     for (int i=0; i< asGetSize(office); i++){
@@ -329,6 +374,7 @@ bool allAroundTest() {
         add_amount*=(-1);
         current_item=asGetNext(office);
     }
+
     current_item=asGetFirst(office);
     for (int i=0; i< asGetSize(office); i++){
         asGetAmount(office, current_item, &add_amount);
@@ -338,12 +384,34 @@ bool allAroundTest() {
         current_item=asGetNext(office);
     }
 
+    return true;
+}
+//test #5 - FULL
+bool allAroundTest() {
+    AmountSet badroom = asCreate();
+    AmountSet office = asCreate();
+    insertToBadroom(badroom);
+    checkBadroomSort(badroom);
+    badroomErrorReturningCheck(badroom);
+    double current_amount=random();
+    char* current_item=asGetFirst(badroom);
+    double add_amount=(double)random();
+    badroomAmountCheck(badroom, current_amount, current_item, add_amount);
+    AmountSet bedroom= asCopy(badroom);
+    copyBadroomToBedroomCheck(badroom, bedroom);
+    clearAndDestroyBadroomCheck(badroom);
+    insertToOffice(office);
+    changeAmountInOfficeCheck(office, current_amount, current_item, add_amount);
+
     asDestroy(bedroom);
     asDestroy(office);
 
     return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//test #6 - FULL
 bool testNoMemory() {
     AmountSet set = asCreate();
     char str[] = { [41] = '\1' };
@@ -357,3 +425,11 @@ bool testNoMemory() {
     asDestroy(set);
     return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// I have to mention that the demand of 50 lines maximum for each function also in the test doesn't make any sense to
+// me. It just made me separate my main test to mini-functions, and, in my opinion, makes it harder to read and follow.
+// But, We sure want every bonus point we can earn, so there you have it.
+
+//created by Noam Marco & Dolev Gefen.
