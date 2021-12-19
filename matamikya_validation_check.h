@@ -35,4 +35,4 @@ bool isNameLegal(const char *name);
  */
 bool checkIfAmountLegal(double amount, MatamikyaAmountType type);
 
-#endif //VALIDATION_CHECK_H_
+#endif /*VALIDATION_CHECK_H_*/

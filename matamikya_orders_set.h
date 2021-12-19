@@ -142,4 +142,4 @@ MatamikyaResult OrderSetFinishOrder(Order_set order_set,Product_set product_set,
  */
 void clearProductFromOrderSet(Order_set order_set,unsigned int id);
 
-#endif //ORDERS_SET_H_
+#endif /*ORDERS_SET_H_*/

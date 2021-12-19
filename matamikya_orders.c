@@ -10,15 +10,18 @@ struct order_t {
     bool finished;
 };
 
+//void compatible cast to copyProductInOrder function, for a valid insertion to order
 static void *orderCopyProductInOrder(void *product_in_order) {
     Product_in_order to_copy = (Product_in_order) product_in_order;
     return (void *) copyProductInOrder(to_copy);
 }
 
+//void compatible cast to destroyProductInOrder function, for a valid insertion to order
 static void orderFreeProductInOrder(void *product_in_order) {
     destroyProductInOrder((Product_in_order) product_in_order);
 }
 
+//void compatible cast to compareProductsInOrder function, for a valid insertion to order
 static int orderCompareProductInOrder(void *product_a, void *product_b) {
     return compareProductsInOrder((Product_in_order) product_a, (Product_in_order) product_b);
 }
@@ -107,7 +110,6 @@ bool isProductExistInOrder(Order order, int product_id) {
     return false;
 }
 
-
 Product_in_order getProductFromOrder(Order order, const int id) {
     assert(order!=NULL);
     Product_in_order current = (Product_in_order) setGetFirst(order->shopping_cart);
@@ -119,7 +121,6 @@ Product_in_order getProductFromOrder(Order order, const int id) {
     }
     return NULL;
 }
-
 
 MatamikyaResult changeProductAmountInOrder(Order order, const unsigned int id, const double amount, Product_set product_set) {
     if (order == NULL || product_set == NULL) {
@@ -188,6 +189,7 @@ MatamikyaResult clearProductFromOrder(Order order, const unsigned int id) {
     return MATAMIKYA_SUCCESS;
 }
 
+//checks for every product in the order that it's requested amount isn't bigger than it's quantity in warehouse's stock.
 static bool checkAmountBeforeFinish(Order order, Product_set product_set) {
     assert(order!=NULL && product_set!=NULL);
     Product_in_order current = (Product_in_order) setGetFirst(order->shopping_cart);
@@ -202,7 +204,6 @@ static bool checkAmountBeforeFinish(Order order, Product_set product_set) {
     }
     return true;
 }
-
 
 MatamikyaResult finishOrder(Order order, Product_set product_set) {
     assert(order!=NULL && product_set!=NULL);

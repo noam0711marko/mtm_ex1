@@ -12,10 +12,13 @@
  *   createOrder                - Allocates a new empty order
  *   destroyOrder               - Deallocates an existing order. Clears all allocated data.
  *   copyOrder                  - Creates a copy of existing order.
+ *   compareOrdersId            - Compares between two orders by their IDs.
  *   getOrderId                 - Returns the id of a non-void order.
  *   getOrderStatus             - Returns the status of a non-void order.
  *   changeOrderStatus          - Changes order status from active to finished.
  *   calculateOrderTotalPrice   - Returns the total price of a non-void order.
+ *   isProductExistInOrder      - Returns if a product exists in a non-void order.
+ *   getProductFromOrder        - Returns a product from the order.
  *   changeProductAmountInOrder - Changes product's amount in the order.
  *   clearProductFromOrder      - Deletes a product (and deallocate it's data) from the order.
  *   finishOrder                - Finish an order.
@@ -55,7 +58,7 @@ void destroyOrder(Order to_destroy);
 Order copyOrder(Order to_copy);
 
 /**
- * compareOrdersId: Compare between two orders by their IDs.
+ * compareOrdersId: Compares between two orders by their IDs.
  *
  * @param first - The first non-void order to compare.
  * @param second - The second non-void order to compare.
@@ -186,4 +189,4 @@ MatamikyaResult finishOrder(Order order, Product_set product_set);
  */
 void printOrder(Order order, FILE* output,Product_set product_set);
 
-#endif //ORDERS_H_
+#endif /*ORDERS_H_*/

@@ -13,6 +13,7 @@
  *   destroyProductSet          - Deallocates an existing set. Clears all allocated products in it.
  *   copyProductSet             - Creates a copy of existing products set.
  *   addProductToProductsSet    - Creates new product and adds it to the products set.
+ *   getProductFromProductSet   - Returns a product from the products set.
  *   changeProductAmount        - Changes product's quantity in the products set.
  *   clearProductFromProductSet - Deletes a product (and deallocate it's data) from the products set.
  *   printProductSet            - Prints all product set's products and their data in an output file.
@@ -139,4 +140,4 @@ void printProductSet(Product_set product_set, FILE *output);
  */
 MatamikyaResult printBestSellingProductSet(Product_set product_set,FILE* output);
 
-#endif //PRODUCTS_SET_H_
+#endif /*PRODUCTS_SET_H_*/

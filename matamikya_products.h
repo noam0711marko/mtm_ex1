@@ -178,5 +178,4 @@ void printProduct(Product product,FILE * output);
  */
 double getPrice(Product product,double amount);
 
-#endif //PRODUCTS_H_
-
+#endif /*PRODUCTS_H_*/

@@ -5,15 +5,18 @@ struct orders_set_t{
     unsigned int next_order_id;
 };
 
+//void compatible cast to copyOrder function, for a valid insertion to orders set
 static void *ordersSetCopyOrder(void *order) {
     Order to_copy = (Order) order;
     return (void *) copyOrder(to_copy);
 }
 
+//void compatible cast to destroyOrder function, for a valid insertion to orders set
 static void freeOrderFromSet(void *order) {
     destroyOrder((Order) order);
 }
 
+//void compatible cast to compareOrdersId function, for a valid insertion to orders set
 static int productCmpVoid(void *order_a, void *order_b) {
     return compareOrdersId((Order) order_a, (Order) order_b);
 }
@@ -50,7 +53,6 @@ Order_set copyOrdersSet(Order_set original) {
         free(copy);
         return NULL;
     }
-
     return copy;
 }
 

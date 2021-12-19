@@ -7,6 +7,7 @@
 
 #include "matamikya.h"
 #include "matamikya_products_set.h"
+
 /**
  * Product In Order
  *
@@ -18,9 +19,8 @@
  *   getProductNameFromOrder       - Returns a copy of the name of a non-void product.
  *   getProductIdFromOrder         - Returns the id of a non-void product.
  *   getProductAmountFromOrderData - Returns the quantity of a non-void product in the order.
- *   getProductPriceFromOrderData  - Returns the total price of a non-void product in the order.
  *   getProductTypeFromOrderData   - Returns the type of measurement of a non-void product.
- *   updateProductAmount           - Updates product's quantity in order.
+ *   updateProductAmountInOrder    - Updates product's quantity in order.
  */
 
 /** Type for defining the product */
@@ -114,19 +114,11 @@ double getProductAmountFromOrderData(Product_in_order product_in_order);
 MatamikyaAmountType getProductTypeFromOrderData(Product_in_order product_in_order);
 
 /**
- * updateProductAmount: Updates product's quantity in order.
+ * updateProductAmountInOrder: Updates product's quantity in order.
  *
  * @param product - The non-void product which it's quantity is needing an update.
  * @param amount - The quantity to increase to/decrease from product's quantity in order.
  */
 void updateProductAmountInOrder(Product_in_order product_in_order, double amount);
 
-/**
- * updateProductAmount: Updates product's total price in order.
- *
- * @param product - The non-void product which it's quantity is needing an update.
- * @param price - The new total price of product in order.
- */
-void updateProductPriceInOrder(Product_in_order product_in_order, double price,Product_set product_set);
-
-#endif //PRODUCT_IN_ORDER_H_
+#endif /*PRODUCT_IN_ORDER_H_*/

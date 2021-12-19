@@ -1,18 +1,21 @@
 #include "matamikya_products_set.h"
-#include "matamikya_products.h"
+
 struct product_set_t{
     Set product_set;
 };
 
+//void compatible cast to copyProduct function, for a valid insertion to products set
 static void *productSetCopyProduct(void *product) {
     Product to_copy = (Product) product;
     return (void *) copyProduct(to_copy);
 }
 
+//void compatible cast to freeProduct function, for a valid insertion to products set
 static void freeProductVoid(void *product) {
     freeProduct((Product) product);
 }
 
+//void compatible cast to productCmp function, for a valid insertion to products set
 static int productCmpVoidInPS(void *product_a, void *product_b) {
     return productCmp((Product) product_a, (Product) product_b);
 }
@@ -108,7 +111,7 @@ MatamikyaResult changeProductAmount(Product_set productSet, const unsigned int i
             return MATAMIKYA_INVALID_AMOUNT;
         }
     }
-    if (amount <= 0) {
+    else if (amount <= 0) {
         if (!checkIfAmountLegal(-amount, getProductAmountType(to_change))) {
             return MATAMIKYA_INVALID_AMOUNT;
         }

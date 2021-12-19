@@ -5,9 +5,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-static long NumTestsPassed = 0;
+////////////////////////////////////////////////// printing functions //////////////////////////////////////////////////
+/////////// color print  ///////////////////////////////////////////////////////////////////////////////////////////////
 
-/*color printing functions*/
 static void red () {
     printf("\033[1;31m");
     fflush(stdout);
@@ -37,12 +37,10 @@ static void reset () {
     fflush(stdout);
 }
 
-/*If you would like to run an OUT_OF_MEMORY check, uncomment the #define
- * warning! the OUT_OF_MEMORY check contains an (almost) infinite loop.
- * therefore, the test might take long time to run.
- */
+/////////// messages print  ////////////////////////////////////////////////////////////////////////////////////////////
 
-//#define WITH_NO_MEMORY_CHECK
+//global variable to count how many test have passed
+static long NumTestsPassed = 0;
 
 static void printNumPassed(long num_tests){
     printf("####  Summary: Passed %ld out of %ld ####\n" ,NumTestsPassed, num_tests);
@@ -95,6 +93,17 @@ static void printCreatedBy(){
     printf("Noam Marco & Dolev Gefen\n");
     reset();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*If you would like to run an OUT_OF_MEMORY check, uncomment the #define
+ * warning! the OUT_OF_MEMORY check contains an (almost) infinite loop.
+ * therefore, the test might take long time to run.
+ */
+
+//#define WITH_NO_MEMORY_CHECK
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*The functions for the tests should be added here*/
 bool (*tests[]) (void) = {
@@ -102,7 +111,10 @@ bool (*tests[]) (void) = {
         testAsAddAndContainsAndSize,
         testChangeAndGetAmount,
         testAsDeleteAndClear,
-        allAroundTest
+        allAroundTest,
+#ifdef WITH_NO_MEMORY_CHECK
+        testNoMemory,
+#endif
 };
 
 #define NUMBER_TESTS ((long)(sizeof(tests)/sizeof(*tests)))
@@ -113,8 +125,13 @@ const char* testNames[NUMBER_TESTS] = {
         "testAsAddAndContainsAndSize",
         "testChangeAndGetAmount",
         "testAsDeleteAndClear",
-        "allAroundTest"
+        "allAroundTest",
+#ifdef WITH_NO_MEMORY_CHECK
+        "testNoMemory",
+#endif
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[])
 {

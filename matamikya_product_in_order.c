@@ -91,4 +91,3 @@ void updateProductAmountInOrder(Product_in_order product_in_order, double amount
     assert(product_in_order!=NULL);
     product_in_order->product_amount+=amount;
 }
-

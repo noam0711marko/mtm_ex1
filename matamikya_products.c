@@ -5,7 +5,7 @@
 
 struct products_t{
     unsigned int id;
-    char *name;
+    char* name;
     double amount;
     MatamikyaAmountType amount_type;
     MtmProductData data;
@@ -13,7 +13,7 @@ struct products_t{
     MtmGetProductPrice get_price;
     MtmFreeData freeData;
     MtmCopyData CopyData;
-    };
+};
 
 Product createProduct(const unsigned int id, const char* name, double amount,MatamikyaAmountType amountType,
                       MtmProductData data, MtmGetProductPrice get_price,MtmCopyData copy,MtmFreeData free_data){
